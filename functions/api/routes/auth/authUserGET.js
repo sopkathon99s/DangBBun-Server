@@ -7,17 +7,14 @@ const { userDB } = require('../../../db');
 
 module.exports = async (req, res) => {
 
-  let client;
-
   try {
-
     const resUser = {
         id: req.user.id,
         nickname: req.user.nickname,
         profileImage: req.user.profileImage 
       }
       
-    res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.READ_ONE_USER_SUCCESS, {user: resUser}));
+    res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.READ_ONE_USER_BY_TOKEN_SUCCESS, {user: resUser}));
   } catch (error) {
     functions.logger.error(`[ERROR] [${req.method.toUpperCase()}] ${req.originalUrl}`, `[CONTENT] ${error}`);
     console.log(error);
