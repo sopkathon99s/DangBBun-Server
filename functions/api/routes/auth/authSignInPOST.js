@@ -3,14 +3,13 @@ const statusCode = require('../../../constants/statusCode');
 const responseMessage = require('../../../constants/responseMessage');
 const db = require('../../../db/db');
 const { userDB } = require('../../../db');
-
 const jwtHandlers = require('../../../lib/jwtHandlers');
 
 
 module.exports = async (req, res) => {
-  const { email, password } = req.body;
+  const { id, password } = req.body;
 
-  if (!email || !password) {
+  if (!id || !password) {
     return res.status(statusCode.BAD_REQUEST).send(util.fail(statusCode.BAD_REQUEST, responseMessage.NULL_VALUE));
   }
 
@@ -19,11 +18,17 @@ module.exports = async (req, res) => {
   try {
     client = await db.connect(req);
 
-    const user = await userDB.getUserSignIn(reqclient, id, password);
+    const user = await userDB.getUserSignIn(client, id, password);
 
     const { accesstoken } = jwtHandlers.sign(user);
 
-    res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.LOGIN_SUCCESS, { user, accesstoken }));
+    const resUser = {
+      id: user.id,
+      nickname: user.nickname,
+      profileImage: user.profileImage 
+    }
+
+    res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.LOGIN_SUCCESS, { user: resUser, accesstoken }));
   } catch (error) {
     console.log(error);
 
