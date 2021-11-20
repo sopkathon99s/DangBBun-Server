@@ -2,9 +2,10 @@ const express = require('express');
 
 const { checkUser } = require('../../../middlewares/auth');
 const router = express.Router();
-
-router.get('/:meetingId', checkUser, require('./meetingParticipantGET'));
+router.get('/host', checkUser, require('./meetingHostGET'));
+router.get('/participant', checkUser, require('./meetingParticipantGET'));
 router.post('', checkUser, require('./meetingPost'));
+router.post('/:meetingId', checkUser, require('./meetingParticipatePOST'));
 
 module.exports = router;
 
