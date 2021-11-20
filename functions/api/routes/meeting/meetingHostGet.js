@@ -6,30 +6,25 @@ const responseMessage = require('../../../constants/responseMessage');
 const db = require('../../../db/db');
 const { meetingDB, userDB } = require('../../../db');
 
-// statusCode
-// 0. 참여 성공
-// 1. 참여 취소 성공
-// 2. 인원 꽉참
-// 3. 모집중인 뻔개가 아님
 
 module.exports = async (req, res) => {
-  const { meetingId }  = req.params;
+
   const user = req.user;
 
-  if (!meetingId) return res.status(statusCode.BAD_REQUEST).send(util.fail(statusCode.BAD_REQUEST, responseMessage.NULL_VALUE));
 
   let client;
 
   try {
     client = await db.connect(req);
 
-    const participationsOPEN = await meetingDB.getParticipatedMeetingsOPEN(client, user.id, "OPEN");
-    
-    console.log("participationsOPEN:", participationsOPEN);
+    const participationsOPEN = await meetingDB.getHostMeetingsOPEN(client, user.id, "OPEN");
+    let meetingsOPEN = []
+    if(participationsOPEN.length !== 0) {
     const meetingIdsOPEN = [...new Set(participationsOPEN.map((o) => o.meetingId).filter(Boolean))]; // [1, 2, 4, 5]
 
+
     console.log("meetingIdsOPEN",meetingIdsOPEN);
-    const meetingsOPEN = await meetingDB.getMeetingsByIds(client, meetingIdsOPEN)
+    meetingsOPEN = await meetingDB.getMeetingsByIds(client, meetingIdsOPEN)
 
     const participationsForTheMeetingOPEN = await meetingDB.getParticipantsByMeetingIds(client, meetingIdsOPEN);
 
@@ -44,11 +39,16 @@ module.exports = async (req, res) => {
     for (let i = 0; i < meetingsOPEN.length; i++){
         meetingsOPEN[i].users= _.filter(participationsForTheMeetingOPEN, o => o.meetingId === meetingsOPEN[i].id).map(o => o.user)
     }
+    }
+    const participationsNOTOPEN = await meetingDB.getHostMeetingsNOTOPEN(client, user.id, "OPEN");
+    let meetingsNOTOPEN = []
+    if(participationsNOTOPEN.length !== 0) {
 
-    const participationsNOTOPEN = await meetingDB.getParticipatedMeetingsNOTOPEN(client, user.id, "OPEN");
+     const meetingIdsNOTOPEN = [...new Set(participationsNOTOPEN.map((o) => o.meetingId).filter(Boolean))]; // [1, 2, 4, 5]
+
+
     
-    const meetingIdsNOTOPEN = [...new Set(participationsNOTOPEN.map((o) => o.meetingId).filter(Boolean))]; // [1, 2, 4, 5]
-    const meetingsNOTOPEN = await meetingDB.getMeetingsByIds(client, meetingIdsNOTOPEN)
+    meetingsNOTOPEN = await meetingDB.getMeetingsByIds(client, meetingIdsNOTOPEN)
 
     const participationsForTheMeetingNOTOPEN = await meetingDB.getParticipantsByMeetingIds(client, meetingIdsNOTOPEN);
 
@@ -63,7 +63,8 @@ module.exports = async (req, res) => {
     for (let i = 0; i < meetingsNOTOPEN.length; i++){
         meetingsNOTOPEN[i].users= _.filter(participationsForTheMeetingNOTOPEN, o => o.meetingId === meetingsNOTOPEN[i].id).map(o => o.user)
     }
-      res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.PARTICIPATED_MEETING_GET_SUCCESS,  {OPEN: meetingsOPEN, notOPEN: meetingsNOTOPEN}));
+}
+      res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.HOST_MEETING_GET_SUCCESS,  {OPEN: meetingsOPEN, notOPEN: meetingsNOTOPEN}));
 
     
   } catch (error) {

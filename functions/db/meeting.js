@@ -149,6 +149,46 @@ const getParticipatedMeetingsNOTOPEN = async(client, userId, state) => {
 
   return convertSnakeToCamel.keysToCamel(rows);
 }
+
+const getHostMeetingsNOTOPEN = async(client, userId, state) => {
+  const { rows } = await client.query(
+    `
+    SELECT * FROM "participation" p
+    INNER JOIN "meeting" m
+    ON p.meeting_id = m.id
+    WHERE p.user_id = $1
+    AND p.is_deleted = FALSE
+    AND m.is_deleted = FALSE
+    AND p.is_host = TRUE
+    AND m.state != $2
+    ORDER BY m.meeting_date ASC
+    `,
+    [userId, state],
+  );
+
+  return convertSnakeToCamel.keysToCamel(rows);
+}
+
+
+const getHostMeetingsOPEN = async(client, userId, state) => {
+  const { rows } = await client.query(
+    `
+    SELECT * FROM "participation" p
+    INNER JOIN "meeting" m
+    ON p.meeting_id = m.id
+    WHERE p.user_id = $1
+    AND p.is_deleted = FALSE
+    AND m.is_deleted = FALSE
+    AND p.is_host = TRUE
+    AND m.state = $2
+    ORDER BY m.meeting_date ASC
+    `,
+    [userId, state],
+  );
+
+  return convertSnakeToCamel.keysToCamel(rows);
+}
+
 const getParticipatedMeetingsOPEN = async(client, userId, state) => {
   const { rows } = await client.query(
     `
@@ -210,4 +250,4 @@ const getParticipantsByMeetingIds = async(client, meetingIds) => {
   
 
 
-module.exports = {addMeeting, participateMeeting, getMeetingById, getParticipatedMeetingsOPEN,getParticipatedMeetingsNOTOPEN,getMeetingsByIds, getParticipantsByMeetingIds };
+module.exports = {addMeeting, participateMeeting, getMeetingById, getParticipatedMeetingsOPEN,getParticipatedMeetingsNOTOPEN,getMeetingsByIds, getParticipantsByMeetingIds, getHostMeetingsOPEN,getHostMeetingsNOTOPEN  };

@@ -8,10 +8,9 @@ const { meetingDB, userDB } = require('../../../db');
 
 
 module.exports = async (req, res) => {
-  const { meetingId }  = req.params;
+
   const user = req.user;
 
-  if (!meetingId) return res.status(statusCode.BAD_REQUEST).send(util.fail(statusCode.BAD_REQUEST, responseMessage.NULL_VALUE));
 
   let client;
 
@@ -19,12 +18,13 @@ module.exports = async (req, res) => {
     client = await db.connect(req);
 
     const participationsOPEN = await meetingDB.getParticipatedMeetingsOPEN(client, user.id, "OPEN");
-    
-    console.log("participationsOPEN:", participationsOPEN);
+    let meetingsOPEN = []
+    if(participationsOPEN.length !== 0) {
     const meetingIdsOPEN = [...new Set(participationsOPEN.map((o) => o.meetingId).filter(Boolean))]; // [1, 2, 4, 5]
 
+
     console.log("meetingIdsOPEN",meetingIdsOPEN);
-    const meetingsOPEN = await meetingDB.getMeetingsByIds(client, meetingIdsOPEN)
+    meetingsOPEN = await meetingDB.getMeetingsByIds(client, meetingIdsOPEN)
 
     const participationsForTheMeetingOPEN = await meetingDB.getParticipantsByMeetingIds(client, meetingIdsOPEN);
 
@@ -39,11 +39,16 @@ module.exports = async (req, res) => {
     for (let i = 0; i < meetingsOPEN.length; i++){
         meetingsOPEN[i].users= _.filter(participationsForTheMeetingOPEN, o => o.meetingId === meetingsOPEN[i].id).map(o => o.user)
     }
-
+    }
     const participationsNOTOPEN = await meetingDB.getParticipatedMeetingsNOTOPEN(client, user.id, "OPEN");
+    let meetingsNOTOPEN = []
+    if(participationsNOTOPEN.length !== 0) {
+
+     const meetingIdsNOTOPEN = [...new Set(participationsNOTOPEN.map((o) => o.meetingId).filter(Boolean))]; // [1, 2, 4, 5]
+
+
     
-    const meetingIdsNOTOPEN = [...new Set(participationsNOTOPEN.map((o) => o.meetingId).filter(Boolean))]; // [1, 2, 4, 5]
-    const meetingsNOTOPEN = await meetingDB.getMeetingsByIds(client, meetingIdsNOTOPEN)
+    meetingsNOTOPEN = await meetingDB.getMeetingsByIds(client, meetingIdsNOTOPEN)
 
     const participationsForTheMeetingNOTOPEN = await meetingDB.getParticipantsByMeetingIds(client, meetingIdsNOTOPEN);
 
@@ -58,6 +63,7 @@ module.exports = async (req, res) => {
     for (let i = 0; i < meetingsNOTOPEN.length; i++){
         meetingsNOTOPEN[i].users= _.filter(participationsForTheMeetingNOTOPEN, o => o.meetingId === meetingsNOTOPEN[i].id).map(o => o.user)
     }
+}
       res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.PARTICIPATED_MEETING_GET_SUCCESS,  {OPEN: meetingsOPEN, notOPEN: meetingsNOTOPEN}));
 
     
