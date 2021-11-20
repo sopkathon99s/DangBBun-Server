@@ -93,8 +93,9 @@ module.exports = async (req, res) => {
         return a.deadline < b.deadline ? -1 : a.deadline > b.deadline ? 1 : 0;  
     });
     
+    const resultData = {"meetings": allMeetings}
 
-    res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.READ_OPEN_MEETING_SUCCESS,  allMeetings));
+    res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.READ_OPEN_MEETING_SUCCESS,  resultData));
 
     
   } catch (error) {
