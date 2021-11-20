@@ -29,4 +29,15 @@ const getUserSignIn = async (client, id, password) => {
   };
   
 
-module.exports = { getUserById, getUserSignIn };
+  const getUserByIds = async (client, userIds) => {
+    const { rows } = await client.query(
+      `
+      SELECT * FROM "user" u
+      WHERE id IN (${userIds.join()})
+      `,
+
+    );
+
+    return convertSnakeToCamel.keysToCamel(rows);
+  };
+module.exports = { getUserById, getUserSignIn, getUserByIds };

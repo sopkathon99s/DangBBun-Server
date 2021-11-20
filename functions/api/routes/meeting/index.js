@@ -5,6 +5,6 @@ const router = express.Router();
 
 router.post('/:meetingId', checkUser, require('./meetingParticipatePOST'));
 router.post('', require('./meetingPost'));
-
+router.get('/:meetingId', checkUser, require('./meetingParticipantGET'));
 module.exports = router;
 
