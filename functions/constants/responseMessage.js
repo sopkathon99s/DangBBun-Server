@@ -18,6 +18,7 @@ module.exports = {
   
     // 유저
     READ_ONE_USER_SUCCESS: '유저 조회 성공',
+    READ_ONE_USER_BY_TOKEN_SUCCESS: '토큰으로 유저 조회 성공',
     READ_ALL_USERS_SUCCESS: '모든 유저 조회 성공',
     UPDATE_ONE_USER_SUCCESS: '유저 수정 성공',
     DELETE_ONE_USER_SUCCESS: '유저 삭제 성공',

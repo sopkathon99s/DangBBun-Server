@@ -11,9 +11,6 @@ const options = {
 const sign = (user) => {
   const payload = {
     id: user.id,
-    email: user.email,
-    name: user.name || null,
-    idFirebase: user.idFirebase,
   };
 
   const result = {
@@ -22,15 +19,18 @@ const sign = (user) => {
   };
   return result;
 };
+
 const verify = (token) => {
   let decoded;
   try {
+    console.log("token:",token);
     decoded = jwt.verify(token, secretKey);
   } catch (err) {
     if (err.message === 'jwt expired') {
       console.log('expired token');
       return TOKEN_EXPIRED;
     } else if (err.message === 'invalid token') {
+      console.log("decoded:", decoded);
       console.log('invalid token');
       console.log(TOKEN_INVALID);
       return TOKEN_INVALID;
