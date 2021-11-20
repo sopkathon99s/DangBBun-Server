@@ -78,6 +78,56 @@ feat/#1
 
 # 프로젝트 폴더링
 
----
-
 ![image](https://user-images.githubusercontent.com/71129059/142736458-db734ab9-e08c-4b37-8a10-c10afa652141.png)
+
+# package.json 
+```
+{
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "cross-env NODE_ENV=development firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "cross-env NODE_ENV=production firebase deploy --only functions",
+    "logs": "firebase functions:lg"
+  },
+  "engines": {
+    "node": "12"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
+    "dayjs": "^1.10.7",
+    "dotenv": "^10.0.0",
+    "eslint-config-prettier": "^8.3.0",
+    "express": "^4.17.1",
+    "firebase-admin": "^9.2.0",
+    "firebase-functions": "^3.11.0",
+    "helmet": "^4.6.0",
+    "hpp": "^0.2.3",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.21",
+    "pg": "^8.7.1"
+  },
+  "devDependencies": {
+    "eslint": "^7.6.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^0.2.0"
+  },
+  "private": true
+}
+```
+# ERD
+![image](https://user-images.githubusercontent.com/42895142/142743516-8dbc6648-71d4-48e8-b9b6-f129ac1c6db1.png)
+
+# Datagrip에서 생성한 Table 정의
+### meeting
+![image](https://user-images.githubusercontent.com/42895142/142743572-8f627802-b2d5-4c17-8fa3-881cba7286a1.png)
+### participation
+![image](https://user-images.githubusercontent.com/42895142/142743561-3f55abd9-1e15-47de-a323-57ea05a71db0.png)
+### user
+![image](https://user-images.githubusercontent.com/42895142/142743551-230de314-8b1b-4887-a074-ba84c6ca78ed.png)
