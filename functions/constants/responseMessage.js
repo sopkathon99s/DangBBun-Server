@@ -38,4 +38,8 @@ module.exports = {
     TOKEN_EXPIRED: '토큰이 만료되었습니다.',
     TOKEN_INVALID: '토큰이 유효하지 않습니다.',
     TOKEN_EMPTY: '토큰이 없습니다.',
+
+    // 뻔개
+    READ_OPEN_MEETING_SUCCESS: '현재 모집중인 뻔개 조회 성공',
+    ADD_MEETING_SUCCESS: '뻔개 등록 성공',
   };
