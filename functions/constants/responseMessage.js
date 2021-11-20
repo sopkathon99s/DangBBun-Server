@@ -30,7 +30,11 @@ module.exports = {
     UPDATE_ONE_POST_SUCCESS: '포스트 수정 성공',
     DELETE_ONE_POST_SUCCESS: '포스트 삭제 성공',
     NO_POST: '존재하지 않는 포스트입니다.',
-  
+
+    // 뻔개
+    PARTICIPATE_MEETING_SUCCESS: '뻔개 참여 성공',
+    UNPARTICIPATE_MEETING_SUCCESS: '뻔개 참여 취소 성공',
+    MEETING_FULL: "모집 인원을 초과했습니다",
     // 서버 내 오류
     INTERNAL_SERVER_ERROR: '서버 내 오류',
   
