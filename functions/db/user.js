@@ -20,7 +20,7 @@ const getUserSignIn = async (client, id, password) => {
     const { rows } = await client.query(
       `
       SELECT * FROM "user" u
-      WHERE login_id = $1
+      WHERE id = $1
       `,
       [id],
     );

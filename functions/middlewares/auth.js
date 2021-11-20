@@ -25,7 +25,7 @@ const checkUser = async (req, res, next) => {
     if (decodedToken === TOKEN_INVALID) return res.status(statusCode.UNAUTHORIZED).send(util.fail(statusCode.UNAUTHORIZED, responseMessage.TOKEN_INVALID));
 
     const userId = decodedToken.id;
-    console.log(decodedToken);
+
     if (!userId) return res.status(statusCode.UNAUTHORIZED).send(util.fail(statusCode.UNAUTHORIZED, responseMessage.TOKEN_INVALID));
 
     user = await userDB.getUserById(client, userId);
