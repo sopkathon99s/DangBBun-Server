@@ -57,7 +57,7 @@ module.exports = async (req, res) => {
     else if (participation.statusCode === 2){
       res.status(statusCode.BAD_REQUEST).send(util.success(statusCode.OK, responseMessage.MEETING_FULL,  resMeeting));
     }
-
+    
   } catch (error) {
     functions.logger.error(`[ERROR] [${req.method.toUpperCase()}] ${req.originalUrl}`, `[CONTENT] ${error}`);
     console.log(error);

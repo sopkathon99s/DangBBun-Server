@@ -116,61 +116,6 @@ const participateMeeting = async (client, userId, meetingId) => {
   return {statusCode, meeting: convertSnakeToCamel.keysToCamel(rows)};
 };
 
-// const participateMeeting = async (client, userId, meetingId) => {
-//   const { rows } = await client.query(
-//     `
-//     INSERT INTO participation
-//     (user_id, meeting_id)
-//     VALUES
-//     ($1, $2)
-//     RETURNING *
-//     `,
-//     [userId, meetingId],
-//   );
-
-  
-//   return convertSnakeToCamel.keysToCamel(rows[0]);
-// };
-
-// const unparticipateMeeting = async (client, userId, meetingId) => {
-//   const { rows } = await client.query(
-//     `
-//     UPDATE participation
-//     (user_id, meeting_id)
-//     VALUES
-//     ($1, $2)
-//     RETURNING *
-//     `,
-//     [userId, meetingId],
-//   );
-//   return convertSnakeToCamel.keysToCamel(rows[0]);
-// };
-/*----------------------------------------------------------------
-"data": {
-        "id": 3,
-        "userId": 2,
-        "isHost": false,
-        "createdAt": "2021-11-21T02:02:17.000Z",
-        "updatedAt": "2021-11-21T02:02:20.812Z",
-        "isDeleted": false,
-        "meetingId": 3,
-        "loginId": "sopt",
-        "password": "sopt",
-        "profileImage": null,
-        "nickname": "솝트짱",
-        "phone": "010-1234-1234",
-        "title": "박건영의 풀스택 강의",
-        "meetingDate": "2021-11-24T21:00:00.000Z",
-        "minMember": 4,
-        "maxMember": 6,
-        "description": "웹 풀스택, vscode를 뜯어본 찐개발자 박건영의 웹 강의!! ",
-        "location": "홍대입구역 2번출구",
-        "deadline": "2021-11-24T09:00:00.000Z",
-        "isAnonymous": false,
-        "currentMember": 3,
-        "state": "OPEN"
-    }
-*/
 const getMeetingById = async(client, meetingId) => {
   const { rows } = await client.query(
     `
@@ -184,6 +129,84 @@ const getMeetingById = async(client, meetingId) => {
     [meetingId],
   );
   return convertSnakeToCamel.keysToCamel(rows[0]);
+}
+
+
+
+const addMeeting = async (client, title, meetingDate, minMember, maxMember, description, location, deadline, isAnonymous) => {
+  const { rows } = await client.query(
+    `
+    INSERT INTO meeting
+    (title, meeting_date, min_member, max_member, description, location, deadline, is_anonymous)
+    VALUES
+    ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING *
+    `,
+    [title, meetingDate, minMember, maxMember, description, location, deadline, isAnonymous],
+  );
+  return convertSnakeToCamel.keysToCamel(rows[0]);
+};
+
+const getParticipatedMeetingsNOTOPEN = async(client, userId, state) => {
+  const { rows } = await client.query(
+    `
+    SELECT * FROM "participation" p
+    INNER JOIN "meeting" m
+    ON p.meeting_id = m.id
+    WHERE p.user_id = $1
+    AND p.is_deleted = FALSE
+    AND m.is_deleted = FALSE
+    AND p.is_host = FALSE
+    AND m.state != $2
+    ORDER BY m.meeting_date ASC
+    `,
+    [userId, state],
+  );
+
+  return convertSnakeToCamel.keysToCamel(rows);
+}
+const getParticipatedMeetingsOPEN = async(client, userId, state) => {
+  const { rows } = await client.query(
+    `
+    SELECT * FROM "participation" p
+    INNER JOIN "meeting" m
+    ON p.meeting_id = m.id
+    WHERE p.user_id = $1
+    AND p.is_deleted = FALSE
+    AND m.is_deleted = FALSE
+    AND p.is_host = FALSE
+    AND m.state = $2
+    ORDER BY m.meeting_date ASC
+    `,
+    [userId, state],
+  );
+
+  return convertSnakeToCamel.keysToCamel(rows);
+}
+
+const getMeetingsByIds = async(client, meetingIds) => {
+  const { rows } = await client.query(
+    `
+    SELECT * FROM meeting
+    WHERE id IN (${meetingIds.join()})
+    AND is_deleted = FALSE
+    `
+  ) 
+  return convertSnakeToCamel.keysToCamel(rows);
+ 
+}
+
+
+const getParticipantsByMeetingIds = async(client, meetingIds) => {
+  const { rows } = await client.query(
+    `
+    SELECT * FROM participation
+    WHERE meeting_id IN (${meetingIds.join()})
+    AND is_deleted = FALSE
+    `,
+  );
+
+  return convertSnakeToCamel.keysToCamel(rows);
 }
 
 
@@ -202,4 +225,5 @@ const getMeetingById = async(client, meetingId) => {
   };
   
 
-module.exports = {addMeeting, participateMeeting, getMeetingById };
+
+module.exports = {addMeeting, participateMeeting, getMeetingById, getParticipatedMeetingsOPEN,getParticipatedMeetingsNOTOPEN,getMeetingsByIds, getParticipantsByMeetingIds };
