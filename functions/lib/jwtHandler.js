@@ -11,9 +11,6 @@ const options = {
 const sign = (user) => {
   const payload = {
     id: user.id,
-    email: user.email,
-    name: user.name || null,
-    idFirebase: user.idFirebase,
   };
 
   const result = {
@@ -22,6 +19,7 @@ const sign = (user) => {
   };
   return result;
 };
+
 const verify = (token) => {
   let decoded;
   try {
