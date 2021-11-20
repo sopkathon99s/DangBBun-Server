@@ -146,36 +146,45 @@ const addMeeting = async (client, title, meetingDate, minMember, maxMember, desc
   return convertSnakeToCamel.keysToCamel(rows[0]);
 };
 
-const getParticipatedMeetings = async(client, userId) => {
-  // const { rows } = await client.query(
-  //   `
-  //   SELECT * FROM "participation" p
-  //   INNER JOIN "meeting" m
-  //   ON p.meeting_id = m.id
-  //   WHERE p.user_id = $1
-  //     AND is_host = false
-  //     AND p.is_deleted = false
-  //     AND m.is_deleted = false
-  //   ORDER BY m.meeting_date ASC
-  //   `,
-  //   [userId],
-  // );
-
+const getParticipatedMeetingsNOTOPEN = async(client, userId, state) => {
   const { rows } = await client.query(
     `
     SELECT * FROM "participation" p
-    WHERE user_id = $1
-    AND is_deleted = FALSE
+    INNER JOIN "meeting" m
+    ON p.meeting_id = m.id
+    WHERE p.user_id = $1
+    AND p.is_deleted = FALSE
+    AND m.is_deleted = FALSE
+    AND p.is_host = FALSE
+    AND m.state != $2
+    ORDER BY m.meeting_date ASC
     `,
-    [userId],
+    [userId, state],
   );
 
+  return convertSnakeToCamel.keysToCamel(rows);
+}
+const getParticipatedMeetingsOPEN = async(client, userId, state) => {
+  const { rows } = await client.query(
+    `
+    SELECT * FROM "participation" p
+    INNER JOIN "meeting" m
+    ON p.meeting_id = m.id
+    WHERE p.user_id = $1
+    AND p.is_deleted = FALSE
+    AND m.is_deleted = FALSE
+    AND p.is_host = FALSE
+    AND m.state = $2
+    ORDER BY m.meeting_date ASC
+    `,
+    [userId, state],
+  );
 
   return convertSnakeToCamel.keysToCamel(rows);
 }
 
 const getMeetingsByIds = async(client, meetingIds) => {
-  const {rows } = await client.query(
+  const { rows } = await client.query(
     `
     SELECT * FROM meeting
     WHERE id IN (${meetingIds.join()})
@@ -186,6 +195,7 @@ const getMeetingsByIds = async(client, meetingIds) => {
  
 }
 
+
 const getParticipantsByMeetingIds = async(client, meetingIds) => {
   const { rows } = await client.query(
     `
@@ -193,9 +203,10 @@ const getParticipantsByMeetingIds = async(client, meetingIds) => {
     WHERE meeting_id IN (${meetingIds.join()})
     AND is_deleted = FALSE
     `,
-
   );
 
   return convertSnakeToCamel.keysToCamel(rows);
 }
-module.exports = {addMeeting, participateMeeting, getMeetingById, getParticipatedMeetings,getMeetingsByIds, getParticipantsByMeetingIds };
+
+
+module.exports = {addMeeting, participateMeeting, getMeetingById, getParticipatedMeetingsOPEN,getParticipatedMeetingsNOTOPEN,getMeetingsByIds, getParticipantsByMeetingIds };

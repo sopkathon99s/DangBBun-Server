@@ -6,6 +6,11 @@ const responseMessage = require('../../../constants/responseMessage');
 const db = require('../../../db/db');
 const { meetingDB, userDB } = require('../../../db');
 
+// statusCode
+// 0. 참여 성공
+// 1. 참여 취소 성공
+// 2. 인원 꽉참
+// 3. 모집중인 뻔개가 아님
 
 module.exports = async (req, res) => {
   const { meetingId }  = req.params;

@@ -35,6 +35,7 @@ module.exports = {
     PARTICIPATE_MEETING_SUCCESS: '뻔개 참여 성공',
     UNPARTICIPATE_MEETING_SUCCESS: '뻔개 참여 취소 성공',
     MEETING_FULL: "모집 인원을 초과했습니다",
+    PARTICIPATED_MEETING_GET_SUCCESS : '내가 참여한 뻔개 조회 성공',
     // 서버 내 오류
     INTERNAL_SERVER_ERROR: '서버 내 오류',
   

@@ -32,7 +32,7 @@ const getUserSignIn = async (client, id, password) => {
   const getUserByIds = async (client, userIds) => {
     const { rows } = await client.query(
       `
-      SELECT * FROM "user" u
+      SELECT id, nickname, profile_image, phone FROM "user" u
       WHERE id IN (${userIds.join()})
       `,
 
