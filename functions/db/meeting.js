@@ -131,85 +131,51 @@ const getMeetingById = async(client, meetingId) => {
   return convertSnakeToCamel.keysToCamel(rows[0]);
 }
 
-const getParticipatedMeetingsNOTOPEN = async(client, userId, state) => {
+
+const addMeeting = async (client, title, meetingDate, minMember, maxMember, description, location, deadline, isAnonymous) => {
+  const { rows } = await client.query(
+    `
+    INSERT INTO meeting
+    (title, meeting_date, min_member, max_member, description, location, deadline, is_anonymous)
+    VALUES
+    ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING *
+    `,
+    [title, meetingDate, minMember, maxMember, description, location, deadline, isAnonymous],
+  );
+  return convertSnakeToCamel.keysToCamel(rows[0]);
+};
+
+const getParticipatedMeetings = async(client, userId) => {
+  // const { rows } = await client.query(
+  //   `
+  //   SELECT * FROM "participation" p
+  //   INNER JOIN "meeting" m
+  //   ON p.meeting_id = m.id
+  //   WHERE p.user_id = $1
+  //     AND is_host = false
+  //     AND p.is_deleted = false
+  //     AND m.is_deleted = false
+  //   ORDER BY m.meeting_date ASC
+  //   `,
+  //   [userId],
+  // );
+
   const { rows } = await client.query(
     `
     SELECT * FROM "participation" p
-    INNER JOIN "meeting" m
-    ON p.meeting_id = m.id
-    WHERE p.user_id = $1
-    AND p.is_deleted = FALSE
-    AND m.is_deleted = FALSE
-    AND p.is_host = FALSE
-    AND m.state != $2
-    ORDER BY m.meeting_date ASC
+    WHERE user_id = $1
+    AND is_deleted = FALSE
     `,
-    [userId, state],
+    [userId],
   );
 
-  return convertSnakeToCamel.keysToCamel(rows);
-}
-
-const getHostMeetingsNOTOPEN = async(client, userId, state) => {
-  const { rows } = await client.query(
-    `
-    SELECT * FROM "participation" p
-    INNER JOIN "meeting" m
-    ON p.meeting_id = m.id
-    WHERE p.user_id = $1
-    AND p.is_deleted = FALSE
-    AND m.is_deleted = FALSE
-    AND p.is_host = TRUE
-    AND m.state != $2
-    ORDER BY m.meeting_date ASC
-    `,
-    [userId, state],
-  );
-
-  return convertSnakeToCamel.keysToCamel(rows);
-}
-
-
-const getHostMeetingsOPEN = async(client, userId, state) => {
-  const { rows } = await client.query(
-    `
-    SELECT * FROM "participation" p
-    INNER JOIN "meeting" m
-    ON p.meeting_id = m.id
-    WHERE p.user_id = $1
-    AND p.is_deleted = FALSE
-    AND m.is_deleted = FALSE
-    AND p.is_host = TRUE
-    AND m.state = $2
-    ORDER BY m.meeting_date ASC
-    `,
-    [userId, state],
-  );
-
-  return convertSnakeToCamel.keysToCamel(rows);
-}
-
-const getParticipatedMeetingsOPEN = async(client, userId, state) => {
-  const { rows } = await client.query(
-    `
-    SELECT * FROM "participation" p
-    INNER JOIN "meeting" m
-    ON p.meeting_id = m.id
-    WHERE p.user_id = $1
-    AND p.is_deleted = FALSE
-    AND m.is_deleted = FALSE
-    AND p.is_host = FALSE
-    AND m.state = $2
-    ORDER BY m.meeting_date ASC
-    `,
-    [userId, state],
-  );
 
   return convertSnakeToCamel.keysToCamel(rows);
 }
 
 const getMeetingsByIds = async(client, meetingIds) => {
-  const { rows } = await client.query(
+  const {rows } = await client.query(
     `
     SELECT * FROM meeting
     WHERE id IN (${meetingIds.join()})
@@ -220,7 +186,6 @@ const getMeetingsByIds = async(client, meetingIds) => {
  
 }
 
-
 const getParticipantsByMeetingIds = async(client, meetingIds) => {
   const { rows } = await client.query(
     `
@@ -228,26 +193,40 @@ const getParticipantsByMeetingIds = async(client, meetingIds) => {
     WHERE meeting_id IN (${meetingIds.join()})
     AND is_deleted = FALSE
     `,
+
   );
 
   return convertSnakeToCamel.keysToCamel(rows);
 }
 
 
-  const addMeeting = async (client, title, meetingDate, minMember, maxMember, description, location, deadline, isAnonymous, userId) => {
-    const { rows } = await client.query(
+// userId가 관여하지 않는 참여 찾기
+const getNotParticipatedMeetings = async(client, userId) => {
+  const { rows } = await client.query(
+    `
+    SELECT * FROM "participation" p
+    WHERE user_id != $1
+    AND is_deleted = FALSE
+    `,
+    [userId],
+  );
+
+
+  return convertSnakeToCamel.keysToCamel(rows);
+}
+
+  // 마감 전 미팅 찾기
+  const getOpenMeetingsByIds = async(client, meetingIds) => {
+    const {rows } = await client.query(
       `
-      INSERT INTO meeting
-      (title, meeting_date, min_member, max_member, description, location, deadline, is_anonymous, user_id)
-      VALUES
-      ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      RETURNING *
-      `,
-      [title, meetingDate, minMember, maxMember, description, location, deadline, isAnonymous, userId],
-    );
-    return convertSnakeToCamel.keysToCamel(rows[0]);
-  };
-  
+      SELECT * FROM meeting
+      WHERE id IN (${meetingIds.join()})
+      AND is_deleted = FALSE
+      AND now() < deadline
+      `
+    ) 
+    return convertSnakeToCamel.keysToCamel(rows);
+   
+  }  
 
-
-module.exports = {addMeeting, participateMeeting, getMeetingById, getParticipatedMeetingsOPEN,getParticipatedMeetingsNOTOPEN,getMeetingsByIds, getParticipantsByMeetingIds, getHostMeetingsOPEN,getHostMeetingsNOTOPEN  };
+module.exports = {addMeeting, participateMeeting, getMeetingById, getParticipatedMeetings,getMeetingsByIds, getParticipantsByMeetingIds, getNotParticipatedMeetings, getOpenMeetingsByIds };

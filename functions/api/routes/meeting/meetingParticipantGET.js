@@ -6,65 +6,45 @@ const responseMessage = require('../../../constants/responseMessage');
 const db = require('../../../db/db');
 const { meetingDB, userDB } = require('../../../db');
 
+// statusCode
+// 0. 참여 성공
+// 1. 참여 취소 성공
+// 2. 인원 꽉참
+// 3. 모집중인 뻔개가 아님
 
 module.exports = async (req, res) => {
-
+  const { meetingId }  = req.params;
   const user = req.user;
 
+  if (!meetingId) return res.status(statusCode.BAD_REQUEST).send(util.fail(statusCode.BAD_REQUEST, responseMessage.NULL_VALUE));
 
   let client;
 
   try {
     client = await db.connect(req);
 
-    const participationsOPEN = await meetingDB.getParticipatedMeetingsOPEN(client, user.id, "OPEN");
-    let meetingsOPEN = []
-    if(participationsOPEN.length !== 0) {
-    const meetingIdsOPEN = [...new Set(participationsOPEN.map((o) => o.meetingId).filter(Boolean))]; // [1, 2, 4, 5]
-
-
-    console.log("meetingIdsOPEN",meetingIdsOPEN);
-    meetingsOPEN = await meetingDB.getMeetingsByIds(client, meetingIdsOPEN)
-
-    const participationsForTheMeetingOPEN = await meetingDB.getParticipantsByMeetingIds(client, meetingIdsOPEN);
-
-
-    const userIdsOPEN = [...new Set(participationsForTheMeetingOPEN.map((o) => o.userId).filter(Boolean))]; // [1, 2, 4, 5]
-    const usersInTheMeetingOPEN = await userDB.getUserByIds(client, userIdsOPEN)
-
-    for (let i=0; i<participationsForTheMeetingOPEN.length; i++){
-        participationsForTheMeetingOPEN[i].user = _.find(usersInTheMeetingOPEN, o => o.id === participationsForTheMeetingOPEN[i].userId)
-    }
-
-    for (let i = 0; i < meetingsOPEN.length; i++){
-        meetingsOPEN[i].users= _.filter(participationsForTheMeetingOPEN, o => o.meetingId === meetingsOPEN[i].id).map(o => o.user)
-    }
-    }
-    const participationsNOTOPEN = await meetingDB.getParticipatedMeetingsNOTOPEN(client, user.id, "OPEN");
-    let meetingsNOTOPEN = []
-    if(participationsNOTOPEN.length !== 0) {
-
-     const meetingIdsNOTOPEN = [...new Set(participationsNOTOPEN.map((o) => o.meetingId).filter(Boolean))]; // [1, 2, 4, 5]
-
-
+    const participations = await meetingDB.getParticipatedMeetings(client, user.id);
     
-    meetingsNOTOPEN = await meetingDB.getMeetingsByIds(client, meetingIdsNOTOPEN)
+    const meetingIds = [...new Set(participations.map((o) => o.meetingId).filter(Boolean))]; // [1, 2, 4, 5]
+    const meetings = await meetingDB.getMeetingsByIds(client, meetingIds)
 
-    const participationsForTheMeetingNOTOPEN = await meetingDB.getParticipantsByMeetingIds(client, meetingIdsNOTOPEN);
+    const participationsForTheMeeting = await meetingDB.getParticipantsByMeetingIds(client, meetingIds);
 
 
-    const userIdsNOTOPEN = [...new Set(participationsForTheMeetingNOTOPEN.map((o) => o.userId).filter(Boolean))]; // [1, 2, 4, 5]
-    const usersInTheMeetingNOTOPEN = await userDB.getUserByIds(client, userIdsNOTOPEN)
+    const userIds = [...new Set(participationsForTheMeeting.map((o) => o.userId).filter(Boolean))]; // [1, 2, 4, 5]
+    const usersInTheMeeting = await userDB.getUserByIds(client, userIds)
 
-    for (let i=0; i<participationsForTheMeetingNOTOPEN.length; i++){
-        participationsForTheMeetingNOTOPEN[i].user = _.find(usersInTheMeetingNOTOPEN, o => o.id === participationsForTheMeetingNOTOPEN[i].userId)
+    for (let i=0; i<participationsForTheMeeting.length; i++){
+        participationsForTheMeeting[i].user = _.find(usersInTheMeeting, o => o.id === participationsForTheMeeting[i].userId)
     }
 
-    for (let i = 0; i < meetingsNOTOPEN.length; i++){
-        meetingsNOTOPEN[i].users= _.filter(participationsForTheMeetingNOTOPEN, o => o.meetingId === meetingsNOTOPEN[i].id).map(o => o.user)
+    for (let i = 0; i < meetings.length; i++){
+        meetings[i].users= _.filter(participationsForTheMeeting, o => o.meetingId === meetings[i].id).map(o => o.user)
+        
+
     }
-}
-      res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.PARTICIPATED_MEETING_GET_SUCCESS,  {OPEN: meetingsOPEN, notOPEN: meetingsNOTOPEN}));
+
+      res.status(statusCode.BAD_REQUEST).send(util.success(statusCode.OK, responseMessage.MEETING_FULL,  meetings));
 
     
   } catch (error) {
