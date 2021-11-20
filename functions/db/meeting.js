@@ -132,6 +132,7 @@ const getMeetingById = async(client, meetingId) => {
 }
 
 
+
 const addMeeting = async (client, title, meetingDate, minMember, maxMember, description, location, deadline, isAnonymous) => {
   const { rows } = await client.query(
     `
@@ -207,6 +208,22 @@ const getParticipantsByMeetingIds = async(client, meetingIds) => {
 
   return convertSnakeToCamel.keysToCamel(rows);
 }
+
+
+  const addMeeting = async (client, title, meetingDate, minMember, maxMember, description, location, deadline, isAnonymous, userId) => {
+    const { rows } = await client.query(
+      `
+      INSERT INTO meeting
+      (title, meeting_date, min_member, max_member, description, location, deadline, is_anonymous, user_id)
+      VALUES
+      ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING *
+      `,
+      [title, meetingDate, minMember, maxMember, description, location, deadline, isAnonymous, userId],
+    );
+    return convertSnakeToCamel.keysToCamel(rows[0]);
+  };
+  
 
 
 module.exports = {addMeeting, participateMeeting, getMeetingById, getParticipatedMeetingsOPEN,getParticipatedMeetingsNOTOPEN,getMeetingsByIds, getParticipantsByMeetingIds };
