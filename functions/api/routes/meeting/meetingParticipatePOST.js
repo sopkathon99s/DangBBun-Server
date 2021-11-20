@@ -5,6 +5,12 @@ const responseMessage = require('../../../constants/responseMessage');
 const db = require('../../../db/db');
 const { meetingDB } = require('../../../db');
 
+// statusCode
+// 0. 참여 성공
+// 1. 참여 취소 성공
+// 2. 인원 꽉참
+// 3. 모집중인 뻔개가 아님
+
 module.exports = async (req, res) => {
   const { meetingId }  = req.params;
   const user = req.user;
@@ -16,7 +22,7 @@ module.exports = async (req, res) => {
   try {
     client = await db.connect(req);
 
-    const participation = await meetingDB.checkParticipation(client, user.id, meetingId);
+    const participation = await meetingDB.participateMeeting(client, user.id, meetingId);
     
     const meeting = participation.meeting;
 
@@ -42,11 +48,14 @@ module.exports = async (req, res) => {
       participants
     }
 
-    if(participation.isParticipation) {
+    if(participation.statusCode === 0) {
       res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.PARTICIPATE_MEETING_SUCCESS,  resMeeting));
     }
-    else {
+    else if (participation.statusCode === 1){
       res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.UNPARTICIPATE_MEETING_SUCCESS,  resMeeting));
+    }
+    else if (participation.statusCode === 2){
+      res.status(statusCode.BAD_REQUEST).send(util.success(statusCode.OK, responseMessage.MEETING_FULL,  resMeeting));
     }
 
   } catch (error) {

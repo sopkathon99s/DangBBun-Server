@@ -2,8 +2,37 @@ const _ = require('lodash');
 const convertSnakeToCamel = require('../lib/convertSnakeToCamel');
 
 
-const checkParticipation = async (client, userId, meetingId) => {
-  let isParticipation = true;
+const participateMeeting = async (client, userId, meetingId) => {
+  let statusCode = 0;
+  let isFull = false;
+  const { rows: checkMemberCount } = await client.query(
+    `
+    SELECT * FROM "participation" p
+    WHERE meeting_id = $1
+        AND p.is_deleted = false
+    `,
+    [meetingId],
+  );
+
+  const { rows: checkMeeting } = await client.query(
+    `
+    SELECT * FROM "meeting" m
+    WHERE id = $1
+      AND is_deleted = false
+    `,
+    [meetingId],
+  );
+
+  const memberCount = checkMemberCount.length;
+  console.log("memberCount",memberCount);
+
+  const maxMember = checkMeeting[0].max_member;
+  console.log("maxMember", maxMember);
+
+  if(maxMember <= memberCount) {
+    isFull = true;
+  }
+
   const { rows: existingRows } = await client.query(
     `
     SELECT * FROM "participation" p
@@ -14,6 +43,22 @@ const checkParticipation = async (client, userId, meetingId) => {
   );
 
   if (existingRows.length === 0) {
+    if(isFull) {
+      statusCode = 2;
+      const { rows } = await client.query(
+        `
+        SELECT * FROM "participation" p
+        INNER JOIN "user" u
+        ON p.user_id = u.id
+        INNER JOIN "meeting" m
+        ON p.meeting_id = m.id
+        WHERE p.meeting_id = $1 AND p.is_deleted = false
+        `,
+        [meetingId],
+      );
+      return {statusCode, meeting: convertSnakeToCamel.keysToCamel(rows)};
+    }
+
     await client.query(
       `
       INSERT INTO participation
@@ -26,6 +71,22 @@ const checkParticipation = async (client, userId, meetingId) => {
     );
   }
   else {
+    if(existingRows[0].is_deleted && isFull) {
+      statusCode = 2;
+      const { rows } = await client.query(
+        `
+        SELECT * FROM "participation" p
+        INNER JOIN "user" u
+        ON p.user_id = u.id
+        INNER JOIN "meeting" m
+        ON p.meeting_id = m.id
+        WHERE p.meeting_id = $1 AND p.is_deleted = false
+        `,
+        [meetingId],
+      );
+      return {statusCode, meeting: convertSnakeToCamel.keysToCamel(rows)};
+    }
+
     const { rows: checkRows} = await client.query(
       `
       UPDATE "participation" p
@@ -37,7 +98,8 @@ const checkParticipation = async (client, userId, meetingId) => {
     );
 
     if(checkRows[0].is_deleted) {
-      isParticipation = false;}
+      statusCode = 1;
+    }
   }
 
   const { rows } = await client.query(
@@ -51,38 +113,38 @@ const checkParticipation = async (client, userId, meetingId) => {
     `,
     [meetingId],
   );
-  return {isParticipation, meeting: convertSnakeToCamel.keysToCamel(rows)};
+  return {statusCode, meeting: convertSnakeToCamel.keysToCamel(rows)};
 };
 
-const participateMeeting = async (client, userId, meetingId) => {
-  const { rows } = await client.query(
-    `
-    INSERT INTO participation
-    (user_id, meeting_id)
-    VALUES
-    ($1, $2)
-    RETURNING *
-    `,
-    [userId, meetingId],
-  );
+// const participateMeeting = async (client, userId, meetingId) => {
+//   const { rows } = await client.query(
+//     `
+//     INSERT INTO participation
+//     (user_id, meeting_id)
+//     VALUES
+//     ($1, $2)
+//     RETURNING *
+//     `,
+//     [userId, meetingId],
+//   );
 
   
-  return convertSnakeToCamel.keysToCamel(rows[0]);
-};
+//   return convertSnakeToCamel.keysToCamel(rows[0]);
+// };
 
-const unparticipateMeeting = async (client, userId, meetingId) => {
-  const { rows } = await client.query(
-    `
-    UPDATE participation
-    (user_id, meeting_id)
-    VALUES
-    ($1, $2)
-    RETURNING *
-    `,
-    [userId, meetingId],
-  );
-  return convertSnakeToCamel.keysToCamel(rows[0]);
-};
+// const unparticipateMeeting = async (client, userId, meetingId) => {
+//   const { rows } = await client.query(
+//     `
+//     UPDATE participation
+//     (user_id, meeting_id)
+//     VALUES
+//     ($1, $2)
+//     RETURNING *
+//     `,
+//     [userId, meetingId],
+//   );
+//   return convertSnakeToCamel.keysToCamel(rows[0]);
+// };
 /*----------------------------------------------------------------
 "data": {
         "id": 3,
@@ -125,4 +187,4 @@ const getMeetingById = async(client, meetingId) => {
 }
 
 
-module.exports = { checkParticipation, participateMeeting, getMeetingById };
+module.exports = { participateMeeting, getMeetingById };
