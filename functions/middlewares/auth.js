@@ -8,6 +8,7 @@ const { userDB } = require('../db');
 const { TOKEN_INVALID, TOKEN_EXPIRED } = require('../constants/jwt');
 
 const checkUser = async (req, res, next) => {
+
   let client;
   try {
     client = await db.connect(req);
@@ -19,7 +20,6 @@ const checkUser = async (req, res, next) => {
     if (!authHeader) return res.status(statusCode.BAD_REQUEST).send(util.fail(statusCode.BAD_REQUEST, responseMessage.NO_AUTH_HEADER));
     const token = authHeader.substring(7, authHeader.length);
     if (!token) return res.status(statusCode.BAD_REQUEST).send(util.fail(statusCode.BAD_REQUEST, responseMessage.TOKEN_EMPTY));
-
     const decodedToken = jwtHandlers.verify(token);
     if (decodedToken === TOKEN_EXPIRED) return res.status(statusCode.UNAUTHORIZED).send(util.fail(statusCode.UNAUTHORIZED, responseMessage.TOKEN_EXPIRED));
     if (decodedToken === TOKEN_INVALID) return res.status(statusCode.UNAUTHORIZED).send(util.fail(statusCode.UNAUTHORIZED, responseMessage.TOKEN_INVALID));
