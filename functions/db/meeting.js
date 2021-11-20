@@ -198,4 +198,35 @@ const getParticipantsByMeetingIds = async(client, meetingIds) => {
 
   return convertSnakeToCamel.keysToCamel(rows);
 }
-module.exports = {addMeeting, participateMeeting, getMeetingById, getParticipatedMeetings,getMeetingsByIds, getParticipantsByMeetingIds };
+
+
+// userId가 관여하지 않는 참여 찾기
+const getNotParticipatedMeetings = async(client, userId) => {
+  const { rows } = await client.query(
+    `
+    SELECT * FROM "participation" p
+    WHERE user_id != $1
+    AND is_deleted = FALSE
+    `,
+    [userId],
+  );
+
+
+  return convertSnakeToCamel.keysToCamel(rows);
+}
+
+  // 마감 전 미팅 찾기
+  const getOpenMeetingsByIds = async(client, meetingIds) => {
+    const {rows } = await client.query(
+      `
+      SELECT * FROM meeting
+      WHERE id IN (${meetingIds.join()})
+      AND is_deleted = FALSE
+      AND now() < deadline
+      `
+    ) 
+    return convertSnakeToCamel.keysToCamel(rows);
+   
+  }  
+
+module.exports = {addMeeting, participateMeeting, getMeetingById, getParticipatedMeetings,getMeetingsByIds, getParticipantsByMeetingIds, getNotParticipatedMeetings, getOpenMeetingsByIds };
