@@ -55,7 +55,7 @@ module.exports = async (req, res) => {
       res.status(statusCode.OK).send(util.success(statusCode.OK, responseMessage.UNPARTICIPATE_MEETING_SUCCESS,  resMeeting));
     }
     else if (participation.statusCode === 2){
-      res.status(statusCode.BAD_REQUEST).send(util.success(statusCode.OK, responseMessage.MEETING_FULL,  resMeeting));
+      res.status(statusCode.BAD_REQUEST).send(util.success(statusCode.BAD_REQUEST, responseMessage.MEETING_FULL,  resMeeting));
     }
     
   } catch (error) {
